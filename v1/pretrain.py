@@ -100,7 +100,7 @@ if __name__ == "__main__":
     radius, ngram = 2,3
     radius, ngram = map(int, [radius, ngram])
 
-    with open('./input/celegansCopy.txt', 'r') as f:
+    with open('./input/celegans.txt', 'r') as f:
         data_list = f.read().strip().split('\n')
 
     """Exclude data contains '.' in the SMILES format."""
@@ -129,7 +129,7 @@ if __name__ == "__main__":
         proteins.append(get_protein_embedding(model,seq_to_kmers(sequence)))
         interactions.append(([float(interaction)]))#0 or 1 
         # print(interaction)
-    dir_input = ('./input/celegansCopy/'
+    dir_input = ('./input/celegans/'
              'radius' + str(radius) + '_ngram' + str(ngram) + '/')
     os.makedirs(dir_input, exist_ok=True)
 

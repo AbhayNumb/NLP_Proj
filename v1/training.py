@@ -574,6 +574,7 @@ if __name__ == "__main__":
         file_model = './output/model/' + DATASET + '/' + \
             str(i) + '_' + str(radius) + '_' + setting
         dataset_dev, dataset_train = val(dataset_, n_val, i)
+        # dataset_dev (19,4)   #dataset_train (79, 4)
         torch.manual_seed(0)
         model = CompoundProteinInteractionPrediction().to(device)
         trainer = Trainer(model)
