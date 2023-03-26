@@ -534,7 +534,7 @@ if __name__ == "__main__":
         dataset_dev, dataset_train = val(dataset_, n_val, i)
         # dataset_dev (19,4)   #dataset_train (79, 4)
         torch.manual_seed(0)
-        model = CompoundProteinInteractionPrediction().to(device)
+        model = CompoundProteinInteractionPrediction(940,1883,2).to(device)
         trainer = Trainer(model)
         tester = Tester(model)
         start = timeit.default_timer()
@@ -560,7 +560,7 @@ if __name__ == "__main__":
             if np.abs(temp - AUC_dev) < 1e-4:
                 break
             temp = AUC_dev
-        best_model = CompoundProteinInteractionPrediction().to(device)
+        best_model = CompoundProteinInteractionPrediction(940,1883,2).to(device)
         best_model.load_state_dict(torch.load(file_model))
         tester = Tester(best_model)
         _, _, _, T, Y, S = tester.test(dataset_test)

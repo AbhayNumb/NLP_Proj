@@ -9,6 +9,7 @@ from rdkit import Chem
 from gensim.models import Word2Vec
 import pandas as pd
 
+
 def create_atoms(mol):
     """Create a list of atom (e.g., hydrogen and oxygen) IDs
     considering the aromaticity."""
@@ -17,7 +18,7 @@ def create_atoms(mol):
         i = a.GetIdx()
         atoms[i] = (atoms[i], 'aromatic')
     atoms = [atom_dict[a] for a in atoms]
-    return np.array(atoms,dtype=object)
+    return np.array(atoms, dtype=object)
 
 
 def create_ijbonddict(mol):
@@ -59,12 +60,12 @@ def extract_fingerprints(atoms, i_jbond_dict, radius):
                     edge = edge_dict[(both_side, edge)]
                     _i_jedge_dict[i].append((j, edge))
             i_jedge_dict = _i_jedge_dict
-    return np.array(fingerprints,dtype=object)
+    return np.array(fingerprints, dtype=object)
 
 
 def create_adjacency(mol):
     adjacency = Chem.GetAdjacencyMatrix(mol)
-    return np.array(adjacency,dtype=object)
+    return np.array(adjacency, dtype=object)
 
 
 def seq_to_kmers(seq, k=3):
@@ -79,13 +80,14 @@ def seq_to_kmers(seq, k=3):
     N = len(seq)
     return [seq[i:i+k] for i in range(N - k + 1)]
 
-def get_protein_embedding(model,protein):
+
+def get_protein_embedding(model, protein):
     """get protein embedding,infer a list of 3-mers to (num_word,100) matrix"""
     vec = np.zeros((len(protein), 101))
     i = 0
     l = len(protein)
     for word in protein:
-        vec[i, ] = np.append(model.wv[word],float(i+1)/float(l))
+        vec[i, ] = np.append(model.wv[word], float(i+1)/float(l))
         i += 1
     return vec
 
@@ -96,8 +98,7 @@ def dump_dictionary(dictionary, filename):
 
 
 if __name__ == "__main__":
-
-    radius, ngram = 2,4
+    radius, ngram = 2, 4
     radius, ngram = map(int, [radius, ngram])
 
     with open('./input/celegans.txt', 'r') as f:
@@ -115,6 +116,9 @@ if __name__ == "__main__":
 
     Smiles, compounds, adjacencies, proteins, interactions = '', [], [], [], []
 
+    max_seq_len = 0
+    nb_of_cls = 2
+
     for no, data in enumerate(data_list):
         print('/'.join(map(str, [no+1, N])))
         smiles, sequence, interaction = data.strip().split()
@@ -124,21 +128,32 @@ if __name__ == "__main__":
         i_jbond_dict = create_ijbonddict(mol)
         fingerprints = extract_fingerprints(atoms, i_jbond_dict, radius)
         compounds.append(fingerprints)
-        adjacency = create_adjacency(mol)#MATRIX of smiles
+        adjacency = create_adjacency(mol)  # MATRIX of smiles
         adjacencies.append(adjacency)
-        proteins.append(get_protein_embedding(model,seq_to_kmers(sequence)))
-        interactions.append(([float(interaction)]))#0 or 1 
+        proteins.append(get_protein_embedding(model, seq_to_kmers(sequence)))
+        interactions.append(([float(interaction)]))  # 0 or 1
         # print(interaction)
+
+        # Update the max_seq_len and nb_of_cls
+        seq_len = len(sequence)
+        if seq_len > max_seq_len:
+            max_seq_len = seq_len
+
+    len_dict_Prop = len(fingerprint_dict)
+
     dir_input = ('./input/celegans/'
-             'radius' + str(radius) + '_ngram' + str(ngram) + '/')
+                 'radius' + str(radius) + '_ngram' + str(ngram) + '/')
     os.makedirs(dir_input, exist_ok=True)
 
     with open(dir_input + 'Smiles.txt', 'w') as f:
         f.write(Smiles)
-
 
     np.save(dir_input + 'compounds', compounds)
     np.save(dir_input + 'adjacencies', adjacencies)
     np.save(dir_input + 'proteins', proteins)
     np.save(dir_input + 'interactions', interactions)
     dump_dictionary(fingerprint_dict, dir_input + 'fingerprint_dict.pickle')
+
+    print("len(dict_Prop):", len_dict_Prop)
+    print("max_seq_len:", max_seq_len)
+    print("nb_of_cls:", nb_of_cls)
